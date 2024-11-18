@@ -1,0 +1,112 @@
+services:
+  caddy:
+    image: caddy:2.8.4-alpine
+    ports:
+    - 443:443
+    - 80:80
+    volumes:
+    - ./Caddyfile:/etc/caddy/Caddyfile
+    - ./.caddy-data:/data
+    - caddy_config:/config
+
+  backend-ch2:
+    build: ./ch2/backend
+    profiles:
+      - ch2
+    environment:
+      KC_URL: https://keycloak.localhost
+    networks:
+      default:
+        aliases:
+        - backend
+    ports:
+    - 3000:3000
+
+  frontend-ch2:
+    build: ./ch2/frontend
+    profiles:
+      - ch2
+    environment:
+      KC_URL: https://keycloak.localhost
+      SERVICE_URL: http://backend.localhost
+    networks:
+      default:
+        aliases:
+        - frontend
+    ports:
+    - 8000:8000
+
+  frontend-ch4:
+    build: ./ch4
+    profiles:
+      - ch4
+    environment:
+      KC_URL: https://keycloak.localhost
+    networks:
+      default:
+        aliases:
+        - frontend
+    ports:
+    - 8000:8000
+
+  backend-ch5:
+    build: ./ch5/backend
+    profiles:
+      - ch5
+    environment:
+      KC_URL: https://keycloak.localhost
+    networks:
+      default:
+        aliases:
+        - backend
+    ports:
+    - 3000:3000
+
+  frontend-ch5:
+    build: ./ch5/frontend
+    profiles:
+      - ch5
+    environment:
+      KC_URL: https://keycloak.localhost
+      SERVICE_URL: http://backend.localhost
+    networks:
+      default:
+        aliases:
+        - frontend
+    ports:
+    - 8000:8000
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    command: start
+    environment:
+      KC_HOSTNAME: keycloak.localhost
+      KC_HTTP_PORT: 8080
+      KC_HTTP_ENABLED: true
+      KC_PROXY: edge
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+    - 8080:8080
+    restart: always
+    depends_on:
+    - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+  caddy_config:
