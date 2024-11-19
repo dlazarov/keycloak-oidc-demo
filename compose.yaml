@@ -1,6 +1,8 @@
 services:
   caddy:
     image: caddy:2.8.4-alpine
+    profiles:
+    - main
     ports:
     - 443:443
     - 80:80
@@ -78,6 +80,8 @@ services:
 
   postgres:
     image: postgres:16-alpine
+    profiles:
+    - main
     volumes:
     - postgres_data:/var/lib/postgresql/data
     environment:
@@ -87,6 +91,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.5
+    profiles:
+    - main
     command: start
     environment:
       KC_HOSTNAME: keycloak.localhost
