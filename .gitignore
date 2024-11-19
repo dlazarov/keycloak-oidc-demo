@@ -1,3 +1,5 @@
 .caddy-data/*
 !.caddy-data/
 !.caddy-data/.gitkeep
+
+localhost.crt
